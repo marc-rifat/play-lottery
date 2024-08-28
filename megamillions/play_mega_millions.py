@@ -78,8 +78,8 @@ if __name__ == '__main__':
     numbers = [wait_for_element_text(browser, xpath) for xpath in XPATHS]
     date = wait_for_element_text(browser, DATE_XPATH)
 
-    df_random = select_random_rows('files/combinations.parquet', PLAYS)
-    df_random.to_csv('files/combinations.csv', index=False)
+    df_random = select_random_rows('megamillions/files/combinations.parquet', PLAYS)
+    df_random.to_csv('megamillions/files/combinations.csv', index=False)
 
     subject = f"Winning numbers of {date}"
     body = (
