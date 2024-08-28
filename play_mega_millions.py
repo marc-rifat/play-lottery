@@ -86,7 +86,7 @@ def generate_mega_millions_combinations():
 
     # Save to Parquet
     table = pa.Table.from_pandas(df)
-    pq.write_table(table, 'files/combinations.parquet')
+    pq.write_table(table, 'combinations.parquet')
 
 
 def send_email(subject, body):
