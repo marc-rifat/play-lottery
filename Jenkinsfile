@@ -25,7 +25,8 @@ pipeline {
             steps {
                 script {
                     sh '''git add -f combinations.csv
-                          git commit -m "Updating combinations.csv"
+                          git add -f logger.log
+                          git commit -m "Updating combinations.csv and logger.log"
                           git push origin HEAD:main
                        '''
                 }
