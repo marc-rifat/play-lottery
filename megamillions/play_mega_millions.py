@@ -18,12 +18,12 @@ URL = 'https://www.valottery.com/data/draw-games/megamillions'
 DATE_XPATH = "//h3[@class='title-display']"
 
 XPATHS = [
-    "//li[@class='dark-blue-text balls-6'][normalize-space()='28']",
-    "//li[@class='dark-blue-text balls-6'][normalize-space()='30']",
-    "//li[@class='dark-blue-text balls-6'][normalize-space()='44']",
-    "//li[@class='dark-blue-text balls-6'][normalize-space()='66']",
-    "//li[@class='dark-blue-text balls-6'][normalize-space()='69']",
-    "//span[@id='bonus-ball-display']"
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[1]",
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[2]",
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[3]",
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[4]",
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[5]",
+    "/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[1]/div/ul/li[6]/div/span"
 ]
 
 
@@ -37,7 +37,7 @@ def initialize_browser():
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36')
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_argument('--verbose')
     return webdriver.Chrome(options=options)
 
@@ -78,8 +78,8 @@ if __name__ == '__main__':
     numbers = [wait_for_element_text(browser, xpath) for xpath in XPATHS]
     date = wait_for_element_text(browser, DATE_XPATH)
 
-    df_random = select_random_rows('megamillions/files/combinations.parquet', PLAYS)
-    df_random.to_csv('megamillions/files/combinations.csv', index=False)
+    df_random = select_random_rows('files/combinations.parquet', PLAYS)
+    df_random.to_csv('files/combinations.csv', index=False)
 
     subject = f"Winning numbers of {date}"
     body = (
