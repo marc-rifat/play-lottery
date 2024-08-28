@@ -2,17 +2,19 @@ import os
 import smtplib
 import ssl
 from email.message import EmailMessage
+from itertools import combinations
 
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from pick_numbers import select_random_rows
-
 THINK_TIME = 15
-PLAYS = 100
+PLAYS = 10
 URL = 'https://www.valottery.com/data/draw-games/megamillions'
 
 DATE_XPATH = "//h3[@class='title-display']"
@@ -46,6 +48,47 @@ def wait_for_element_text(browser, xpath):
     return WebDriverWait(browser, THINK_TIME).until(EC.visibility_of_element_located((By.XPATH, xpath))).text
 
 
+def check_combination_in_parquet(parquet_file, main_numbers, mega_ball):
+    df = pd.read_parquet(parquet_file)
+    match = df[
+        (df['Main1'] == main_numbers[0]) &
+        (df['Main2'] == main_numbers[1]) &
+        (df['Main3'] == main_numbers[2]) &
+        (df['Main4'] == main_numbers[3]) &
+        (df['Main5'] == main_numbers[4]) &
+        (df['MegaBall'] == mega_ball)
+        ]
+
+    if not match.empty:
+        print("The combination is in the file.")
+    else:
+        print("The combination is NOT in the file.")
+
+
+def generate_mega_millions_combinations():
+    # Define ranges for the main numbers and Mega Ball
+    main_numbers = range(1, 71)
+    mega_ball_numbers = range(1, 26)
+
+    # Generate all combinations of 5 main numbers
+    main_combinations = list(combinations(main_numbers, 5))
+
+    # Prepare for storing the data
+    records = []
+
+    # Generate all combinations of main numbers with each Mega Ball
+    for main_comb in main_combinations:
+        for mega_ball in mega_ball_numbers:
+            records.append((*main_comb, mega_ball))
+
+    # Convert to DataFrame
+    df = pd.DataFrame(records, columns=['Main1', 'Main2', 'Main3', 'Main4', 'Main5', 'MegaBall'])
+
+    # Save to Parquet
+    table = pa.Table.from_pandas(df)
+    pq.write_table(table, 'files/combinations.parquet')
+
+
 def send_email(subject, body):
     email_sender = os.getenv('email_sender')
     email_password = os.getenv('email_password')
@@ -64,11 +107,19 @@ def send_email(subject, body):
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
         smtp.send_message(em)
+        print('Email sent successfully.')
 
 
 def contains_all_elements(df, elements_list):
     df_values_set = set(df.values.flatten())
     return all(element in df_values_set for element in elements_list)
+
+
+def select_random_rows(parquet_file_path, num_rows):
+    df = pd.read_parquet(parquet_file_path)
+    if num_rows > len(df):
+        raise ValueError(f"Requested number of rows ({num_rows}) exceeds the total number of rows ({len(df)}).")
+    return df.sample(n=num_rows)
 
 
 if __name__ == '__main__':
@@ -78,8 +129,8 @@ if __name__ == '__main__':
     numbers = [wait_for_element_text(browser, xpath) for xpath in XPATHS]
     date = wait_for_element_text(browser, DATE_XPATH)
 
-    df_random = select_random_rows('megamillions/files/combinations.parquet', PLAYS)
-    df_random.to_csv('megamillions/files/combinations.csv', index=False)
+    df_random = select_random_rows('combinations.parquet', PLAYS)
+    df_random.to_csv('combinations.csv', index=False)
 
     subject = f"Winning numbers of {date}"
     body = (
@@ -87,7 +138,6 @@ if __name__ == '__main__':
         f"Winning the jackpot? {'Yes' if contains_all_elements(df_random, numbers) else 'No'}\n"
         f"Your numbers are:\n{df_random.head(5).to_string(index=False)}"
     )
-    print(body)
     send_email(subject, body)
 
     browser.quit()
