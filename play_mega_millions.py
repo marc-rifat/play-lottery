@@ -20,7 +20,7 @@ with open(log_file_path, 'w') as file:
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 THINK_TIME = 15
-PLAYS = 10
+PLAYS = 1000
 URL = 'https://www.valottery.com/data/draw-games/megamillions'
 
 DATE_XPATH = "//h3[@class='title-display']"
@@ -145,11 +145,13 @@ if __name__ == '__main__':
     logging.info(f"\n\n\n"
                  f"{df_random.to_markdown(index=False)}")
 
-    subject = f"Winning numbers of {date}"
-    body = (
-        f"Winning numbers: {numbers}\n"
-        f"Winning the jackpot? {'Yes' if contains_all_elements(df_random, numbers) else 'No'}\n"
-        f"Your numbers are:\n{df_random.head(5).to_string(index=False)}"
-    )
-
-    # send_email(subject, body)
+    if contains_all_elements(df_random, numbers):
+        subject = f"Winning numbers of {date}"
+        body = (
+            f"Winning numbers: {numbers}\n"
+            f"Winning the jackpot? {'Yes' if contains_all_elements(df_random, numbers) else 'No'}\n"
+            f"Your numbers are:\n{df_random.head(5).to_string(index=False)}"
+        )
+        send_email(subject, body)
+    else:
+        logging.info('Not winning today')
