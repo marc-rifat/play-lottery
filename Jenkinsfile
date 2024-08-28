@@ -16,7 +16,7 @@ pipeline {
                     sh "${VENV_BIN}/pip3 --version"
                     sh "which ${VENV_BIN}/pip3"
                     sh "${VENV_BIN}/pip3 install -r requirements.txt"
-                    sh "${VENV_BIN}/python3.12 play_mega_millions.py"
+                    sh "${VENV_BIN}/python3.12 megamillions/play_mega_millions.py"
                 }
             }
         }

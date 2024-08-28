@@ -88,6 +88,6 @@ if __name__ == '__main__':
         f"Your numbers are:\n{df_random.head(5).to_string(index=False)}"
     )
     print(body)
-    # send_email(subject, body)
+    send_email(subject, body)
 
     browser.quit()
