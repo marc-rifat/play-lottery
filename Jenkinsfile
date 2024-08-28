@@ -24,7 +24,7 @@ pipeline {
         stage('Push to origin') {
             steps {
                 script {
-                    sh '''git add -f combinations.csv
+                    sh '''git add -f megamillions/files/combinations.csv
                           git commit -m "Updating combinations.csv"
                           git push origin HEAD:main
                        '''
