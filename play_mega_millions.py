@@ -89,7 +89,7 @@ def generate_mega_millions_combinations():
     pq.write_table(table, 'combinations.parquet')
 
 
-def send_email(subject, body):
+def send_email(_subject, _body):
     email_sender = os.getenv('email_sender')
     email_password = os.getenv('email_password')
     email_receiver = os.getenv('email_receiver')
@@ -97,8 +97,8 @@ def send_email(subject, body):
     em = EmailMessage()
     em['From'] = email_sender
     em['To'] = email_receiver
-    em['Subject'] = subject
-    em.set_content(body)
+    em['Subject'] = _subject
+    em.set_content(_body)
 
     context = ssl.create_default_context()
     context.check_hostname = False
