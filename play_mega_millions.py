@@ -1,3 +1,4 @@
+import logging
 import os
 import smtplib
 import ssl
@@ -12,6 +13,11 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+log_file_path = os.path.join(os.path.dirname(__file__), 'logger.log')
+with open(log_file_path, 'w') as file:
+    pass
+logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 THINK_TIME = 15
 PLAYS = 10
@@ -39,13 +45,13 @@ def initialize_browser():
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--verbose')
     return webdriver.Chrome(options=options)
 
 
-def wait_for_element_text(browser, xpath):
-    return WebDriverWait(browser, THINK_TIME).until(EC.visibility_of_element_located((By.XPATH, xpath))).text
+def wait_for_element_text(_browser, xpath):
+    return WebDriverWait(_browser, THINK_TIME).until(EC.visibility_of_element_located((By.XPATH, xpath))).text
 
 
 def check_combination_in_parquet(parquet_file, main_numbers, mega_ball):
@@ -107,7 +113,7 @@ def send_email(_subject, _body):
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
         smtp.send_message(em)
-        print('Email sent successfully.')
+        logging.info('Email sent successfully.')
 
 
 def contains_all_elements(df, elements_list):
@@ -127,10 +133,17 @@ if __name__ == '__main__':
     browser.get(url=URL)
 
     numbers = [wait_for_element_text(browser, xpath) for xpath in XPATHS]
+    logging.info(f"Winning numbers are {numbers}")
+
     date = wait_for_element_text(browser, DATE_XPATH)
+
+    browser.quit()
 
     df_random = select_random_rows('combinations.parquet', PLAYS)
     df_random.to_csv('combinations.csv', index=False)
+
+    logging.info(f"\n\n\n"
+                 f"{df_random.to_markdown(index=False)}")
 
     subject = f"Winning numbers of {date}"
     body = (
@@ -138,6 +151,5 @@ if __name__ == '__main__':
         f"Winning the jackpot? {'Yes' if contains_all_elements(df_random, numbers) else 'No'}\n"
         f"Your numbers are:\n{df_random.head(5).to_string(index=False)}"
     )
-    send_email(subject, body)
 
-    browser.quit()
+    # send_email(subject, body)
